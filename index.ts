@@ -1,6 +1,6 @@
 import { toLong, fromLong } from 'ip';
-// @ts-ignore
 import { Address4, Address6 } from 'ip-address';
+import { BigInteger } from 'jsbn';
 
 // Set default max range
 let maxRange = 10000;
@@ -46,7 +46,8 @@ const getRangev6 = (ip1: string, ip2: string) => {
   const firstAddress = new Address6(ip1);
   const lastAddress = new Address6(ip2);
 
-  for (let i = firstAddress.bigInteger(); i <= lastAddress.bigInteger(); i++) {
+  const oneAsBigInteger = new BigInteger('1');
+  for (let i = firstAddress.bigInteger(); i <= lastAddress.bigInteger(); i = i.add(oneAsBigInteger)) {
     ips.push(Address6.fromBigInteger(i).correctForm());
   }
 
@@ -72,13 +73,13 @@ const getIPRange = (ip1: string, ip2?: string): string[] => {
   if (ip2) {
     // IPv4
     const ip2v4 = getIPv4(ip2);
-    if (ip1v4.valid && ip2v4.valid && !ip1v4.parsedSubnet && !ip2v4.parsedSubnet) {
+    if (ip1v4 && ip2v4 && !ip1v4.parsedSubnet && !ip2v4.parsedSubnet) {
       return getRangev4(ip1v4.correctForm(), ip2v4.correctForm());
     }
 
     // IPv6
     const ip2v6 = getIPv6(ip2);
-    if (ip1v6.valid && ip2v6.valid && !ip1v6.parsedSubnet && !ip2v6.parsedSubnet) {
+    if (ip1v6 && ip2v6 && !ip1v6.parsedSubnet && !ip2v6.parsedSubnet) {
       return getRangev6(ip1v6.correctForm(), ip2v6.correctForm());
     }
 
@@ -89,11 +90,11 @@ const getIPRange = (ip1: string, ip2?: string): string[] => {
   //
   // CIDR
   //
-  if (isCIDR(ip1v4)) {
+  if (ip1v4 && isCIDR(ip1v4)) {
     return getRangev4(ip1v4.startAddress().correctForm(), ip1v4.endAddress().correctForm());
   }
 
-  if (isCIDR(ip1v6)) {
+  if (ip1v6 && isCIDR(ip1v6)) {
     return getRangev6(ip1v6.startAddress().correctForm(), ip1v6.endAddress().correctForm());
   }
 
